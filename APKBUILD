@@ -1,21 +1,22 @@
-# Maintainer: Sasha Gerrand <alpine-pkgs@sgerrand.com>
+# Maintainer: Kali <kali@cobli.co>
 
 pkgname="glibc"
 pkgver="2.32"
 _pkgrel="0"
 pkgrel="0"
 pkgdesc="GNU C Library compatibility layer"
-arch="x86_64"
-url="https://github.com/sgerrand/alpine-pkg-glibc"
+arch="x86_64 aarch64"
+url="https://github.com/Cobliteam/alpine-pkg-glibc"
 license="LGPL"
-source="https://github.com/sgerrand/docker-glibc-builder/releases/download/$pkgver-$_pkgrel/glibc-bin-$pkgver-$_pkgrel-x86_64.tar.gz
+source="https://github.com/Cobliteam/docker-glibc-builder/releases/download/$pkgver-$_pkgrel/glibc-bin-$pkgver-$_pkgrel-$CARCH.tar.gz
 nsswitch.conf
 ld.so.conf"
 subpackages="$pkgname-bin $pkgname-dev $pkgname-i18n"
 triggers="$pkgname-bin.trigger=/lib:/usr/lib:/usr/glibc-compat/lib"
+options="$options !check"
 
 package() {
-  mkdir -p "$pkgdir/lib" "$pkgdir/lib64" "$pkgdir/usr/glibc-compat/lib/locale"  "$pkgdir"/usr/glibc-compat/lib64 "$pkgdir"/etc
+  mkdir -p "$pkgdir/lib" "$pkgdir/usr/glibc-compat/lib/locale"  "$pkgdir"/usr/glibc-compat/lib64 "$pkgdir"/etc
   cp -a "$srcdir"/usr "$pkgdir"
   cp "$srcdir"/ld.so.conf "$pkgdir"/usr/glibc-compat/etc/ld.so.conf
   cp "$srcdir"/nsswitch.conf "$pkgdir"/etc/nsswitch.conf
@@ -27,9 +28,12 @@ package() {
   rm -rf "$pkgdir"/usr/glibc-compat/lib/audit
   rm -rf "$pkgdir"/usr/glibc-compat/share
   rm -rf "$pkgdir"/usr/glibc-compat/var
-  ln -s /usr/glibc-compat/lib/ld-linux-x86-64.so.2 ${pkgdir}/lib/ld-linux-x86-64.so.2
-  ln -s /usr/glibc-compat/lib/ld-linux-x86-64.so.2 ${pkgdir}/lib64/ld-linux-x86-64.so.2
-  ln -s /usr/glibc-compat/lib/ld-linux-x86-64.so.2 ${pkgdir}/usr/glibc-compat/lib64/ld-linux-x86-64.so.2
+  case "$CARCH" in
+	aarch64)	_ld="ld-linux-aarch64.so.1";;
+	x86_64)		_ld="ld-linux-x86-64.so.2";;
+	esac
+  ln -s /usr/glibc-compat/lib/$_ld ${pkgdir}/lib/$_ld
+  ln -s /usr/glibc-compat/lib/$_ld ${pkgdir}/usr/glibc-compat/lib64/$_ld
   ln -s /usr/glibc-compat/etc/ld.so.cache ${pkgdir}/etc/ld.so.cache
 }
 
